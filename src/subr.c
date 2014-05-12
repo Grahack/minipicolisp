@@ -964,7 +964,7 @@ any doMmeq(any x) {
    x = cdr(x),  Push(c1, EVAL(car(x)));
    x = cdr(x),  y = EVAL(car(x));
    for (x = Pop(c1);  isCell(x);  x = cdr(x))
-      if (z = memq(car(x), y))
+      if ((z = memq(car(x), y)))
          return z;
    return Nil;
 }
@@ -1253,12 +1253,12 @@ static any fill(any x, any s) {
       cdr(y) = fill(cdr(x), s) ?: cdr(x);
       return Pop(c1);
    }
-   if (y = fill(car(x), s)) {
+   if ((y = fill(car(x), s))) {
       Push(c1,y);
       y = fill(cdr(x), s);
       return cons(Pop(c1), y ?: cdr(x));
    }
-   if (y = fill(cdr(x), s))
+   if ((y = fill(cdr(x), s)))
       return cons(car(x), y);
    return NULL;
 }
@@ -1269,7 +1269,7 @@ any doFill(any x) {
 
    x = cdr(x),  Push(c1, EVAL(car(x)));
    x = cdr(x),  Push(c2, EVAL(car(x)));
-   if (x = fill(data(c1), data(c2))) {
+   if ((x = fill(data(c1), data(c2)))) {
       drop(c1);
       return x;
    }
