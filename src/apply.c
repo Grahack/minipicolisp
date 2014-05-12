@@ -12,7 +12,7 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
          struct {  // bindFrame
             struct bindFrame *link;
             int i, cnt;
-            struct {any sym; any val;} bnd[length(x)+2];
+            struct {any sym; any val;} bnd[100]; //length(x)+2];
          } f;
 
          f.link = Env.bind,  Env.bind = (bindFrame*)&f;
@@ -63,7 +63,7 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
             struct {  // bindFrame
                struct bindFrame *link;
                int i, cnt;
-               struct {any sym; any val;} bnd[length(x = car(expr))+3];
+               struct {any sym; any val;} bnd[100]; //length(x = car(expr))+3];
             } f;
 
             Env.cls = TheCls,  Env.key = TheKey;

@@ -57,7 +57,7 @@ any doEval(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(x)];
+         struct {any sym; any val;} bnd[100]; //length(x)];
       } f;
 
       x = cdr(x),  x = EVAL(car(x));
@@ -125,7 +125,7 @@ any doRun(any x) {
          struct {  // bindFrame
             struct bindFrame *link;
             int i, cnt;
-            struct {any sym; any val;} bnd[length(x)];
+            struct {any sym; any val;} bnd[100]; //length(x)];
          } f;
 
          x = cdr(x),  x = EVAL(car(x));
@@ -258,7 +258,7 @@ static any evMethod(any o, any expr, any x) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)+3];
+      struct {any sym; any val;} bnd[100]; //length(y)+3];
    } f;
 
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
@@ -591,7 +591,7 @@ any doBind(any ex) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(y)];
+         struct {any sym; any val;} bnd[100]; //length(y)];
       } f;
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
@@ -626,7 +626,7 @@ any doJob(any ex) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)];
+      struct {any sym; any val;} bnd[100]; //length(y)];
    } f;
 
    Push(c1,y);
@@ -664,7 +664,7 @@ any doLet(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[(length(y)+1)/2];
+         struct {any sym; any val;} bnd[100]; //(length(y)+1)/2];
       } f;
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
@@ -714,7 +714,7 @@ any doUse(any x) {
       struct {  // bindFrame
          struct bindFrame *link;
          int i, cnt;
-         struct {any sym; any val;} bnd[length(y)];
+         struct {any sym; any val;} bnd[100]; //length(y)];
       } f;
 
       f.link = Env.bind,  Env.bind = (bindFrame*)&f;
@@ -1129,7 +1129,7 @@ any doFor(any x) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[2];
+      struct {any sym; any val;} bnd[100]; //2];
    } f;
 
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
@@ -1312,7 +1312,7 @@ static outFrame Out;
 static struct {  // bindFrame
    struct bindFrame *link;
    int i, cnt;
-   struct {any sym; any val;} bnd[2];  // for 'Up' and 'At'
+   struct {any sym; any val;} bnd[100]; //2];  // for 'Up' and 'At'
 } Brk;
 
 void brkLoad(any x) {
