@@ -10,19 +10,18 @@ picolisp: $(bin)/picolisp
 
 .c.o:
 	echo $*.c:
-	clang -c $*.c
+	emcc -c -emit-llvm $*.c -o $*.bc
 
 $(picoFiles:.c=.o): pico.h
 
 $(bin)/picolisp: $(picoFiles:.c=.o)
 	mkdir -p $(bin)
 	echo "  " link picolisp:
-	clang -o $(bin)/picolisp $(picoFiles:.c=.o)
-	strip $(bin)/picolisp
+	emcc -o $(bin)/picolisp.js $(picoFiles:.c=.bc)
 
 
 # Clean up
 clean:
-	rm -f *.o
+	rm -f *.o *.bc
 
 # vi:noet:ts=4:sw=4
