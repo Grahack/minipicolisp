@@ -10,7 +10,7 @@ picolisp: $(bin)/picolisp
 
 .c.o:
 	echo $*.c:
-	clang $*.c
+	clang -c $*.c
 
 $(picoFiles:.c=.o): pico.h
 
