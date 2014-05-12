@@ -17,7 +17,7 @@ $(picoFiles:.c=.o): pico.h
 $(bin)/picolisp: $(picoFiles:.c=.o)
 	mkdir -p $(bin)
 	echo "  " link picolisp:
-	gcc -o $(bin)/picolisp $(picoFiles:.c=.o) -lc -lm
+	clang -o $(bin)/picolisp $(picoFiles:.c=.o)
 	strip $(bin)/picolisp
 
 
