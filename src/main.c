@@ -303,7 +303,7 @@ long compare(any x, any y) {
 }
 
 /*** Error handling ***/
-void err(any ex, any x, char *fmt, ...) {
+void err1(any ex, any x, char *fmt, ...) {
    va_list ap;
    char msg[240];
    outFrame f;
@@ -348,18 +348,18 @@ any doQuit(any x) {
 
       bufString(y, msg);
       x = isCell(x = cdr(x))?  EVAL(car(x)) : NULL;
-      err(NULL, x, "%s", msg);
+      err1(NULL, x, "%s", msg);
    }
 }
 
-void argError(any ex, any x) {err(ex, x, "Bad argument");}
-void numError(any ex, any x) {err(ex, x, "Number expected");}
-void symError(any ex, any x) {err(ex, x, "Symbol expected");}
-void pairError(any ex, any x) {err(ex, x, "Cons pair expected");}
-void atomError(any ex, any x) {err(ex, x, "Atom expected");}
-void lstError(any ex, any x) {err(ex, x, "List expected");}
-void varError(any ex, any x) {err(ex, x, "Variable expected");}
-void protError(any ex, any x) {err(ex, x, "Protected symbol");}
+void argError(any ex, any x) {err1(ex, x, "Bad argument");}
+void numError(any ex, any x) {err1(ex, x, "Number expected");}
+void symError(any ex, any x) {err1(ex, x, "Symbol expected");}
+void pairError(any ex, any x) {err1(ex, x, "Cons pair expected");}
+void atomError(any ex, any x) {err1(ex, x, "Atom expected");}
+void lstError(any ex, any x) {err1(ex, x, "List expected");}
+void varError(any ex, any x) {err1(ex, x, "Variable expected");}
+void protError(any ex, any x) {err1(ex, x, "Protected symbol");}
 
 void unwind(catchFrame *catch) {
    any x;
@@ -472,7 +472,7 @@ any evExpr(any expr, any x) {
    return x;
 }
 
-void undefined(any x, any ex) {err(ex, x, "Undefined");}
+void undefined(any x, any ex) {err1(ex, x, "Undefined");}
 
 static any evList2(any foo, any ex) {
    cell c1;

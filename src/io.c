@@ -12,8 +12,8 @@ static word StrW;
 static void (*PutSave)(int);
 static char Delim[] = " \t\n\r\"'(),[]`~{}";
 
-static void openErr(any ex, char *s) {err(ex, NULL, "%s open: %s", s, strerror(errno));}
-static void eofErr(void) {err(NULL, NULL, "EOF Overrun");}
+static void openErr(any ex, char *s) {err1(ex, NULL, "%s open: %s", s, strerror(errno));}
+static void eofErr(void) {err1(NULL, NULL, "EOF Overrun");}
 
 /* Buffer size */
 int bufSize(any x) {return symBytes(x) + 1;}
@@ -258,7 +258,7 @@ static any rdList(void) {
          if (skip() == ')')
             Env.get();
          else if (Chr != ']')
-            err(NULL, x, "Bad dotted pair");
+            err1(NULL, x, "Bad dotted pair");
          break;
       }
       if (Chr != '~')
@@ -355,7 +355,7 @@ static any read0(bool top) {
       Env.get();
       x = rdList();
       if (Chr != ']')
-         err(NULL, x, "Super parentheses mismatch");
+         err1(NULL, x, "Super parentheses mismatch");
       Env.get();
       return x;
    }
@@ -416,7 +416,7 @@ static any read0(bool top) {
       return y;
    }
    if (strchr(Delim, Chr))
-      err(NULL, NULL, "Bad input '%c' (%d)", isprint(Chr)? Chr:'?', Chr);
+      err1(NULL, NULL, "Bad input '%c' (%d)", isprint(Chr)? Chr:'?', Chr);
    if (Chr == '\\')
       Env.get();
    putByte1(Chr, &i, &w, &p);

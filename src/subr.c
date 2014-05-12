@@ -276,7 +276,7 @@ any doMake(any x) {
    return Pop(c1);
 }
 
-static void makeError(any ex) {err(ex, NULL, "Not making");}
+static void makeError(any ex) {err1(ex, NULL, "Not making");}
 
 // (made ['lst1 ['lst2]]) -> lst
 any doMade(any x) {

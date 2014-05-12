@@ -229,7 +229,7 @@ any doDm(any ex) {
       y = val(cdr(x));
       for (;;) {
          if (!isCell(y) || !isCell(car(y)))
-            err(ex, msg, "Bad message");
+            err1(ex, msg, "Bad message");
          if (caar(y) == msg) {
             x = car(y);
             break;
@@ -450,7 +450,7 @@ any doMeth(any ex) {
    NeedSymb(ex,data(c1));
    for (TheKey = car(ex); ; TheKey = val(TheKey)) {
       if (!isSymb(TheKey))
-         err(ex, car(ex), "Bad message");
+         err1(ex, car(ex), "Bad message");
       if (isNum(val(TheKey))) {
          TheCls = NULL;
          if ((y = method(data(c1)))) {
@@ -458,7 +458,7 @@ any doMeth(any ex) {
             drop(c1);
             return x;
          }
-         err(ex, TheKey, "Bad message");
+         err1(ex, TheKey, "Bad message");
       }
    }
 }
@@ -478,7 +478,7 @@ any doSend(any ex) {
       drop(c1);
       return x;
    }
-   err(ex, TheKey, "Bad message");
+   err1(ex, TheKey, "Bad message");
 }
 
 // (try 'msg 'obj ['any ..]) -> any
@@ -519,7 +519,7 @@ any doSuper(any ex) {
       }
       x = cdr(x);
    }
-   err(ex, TheKey, "Bad super");
+   err1(ex, TheKey, "Bad super");
 }
 
 static any extra(any x) {
@@ -552,7 +552,7 @@ any doExtra(any ex) {
       Env.key = key,  Env.cls = cls;
       return x;
    }
-   err(ex, TheKey, "Bad extra");
+   err1(ex, TheKey, "Bad extra");
 }
 
 // (with 'sym . prg) -> any
@@ -1291,7 +1291,7 @@ any doThrow(any ex) {
          unwind(p);
          longjmp(p->rst, 1);
       }
-   err(ex, tag, "Tag not found");
+   err1(ex, tag, "Tag not found");
 }
 
 // (finally exe . prg) -> any
@@ -1346,7 +1346,7 @@ any doE(any ex) {
    cell c1, at;
 
    if (!Env.brk)
-      err(ex, NULL, "No Break");
+      err1(ex, NULL, "No Break");
    Push(c1,val(Dbg)),  val(Dbg) = Nil;
    Push(at, val(At)),  val(At) = Brk.bnd[1].val;
    if (Env.inFrames && Env.inFrames->link)

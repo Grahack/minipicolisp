@@ -179,7 +179,7 @@ any consSym(any,word);
 void newline(void);
 any endString(void);
 bool equal(any,any);
-void err(any,any,char*,...) __attribute__ ((noreturn));
+void err1(any,any,char*,...) __attribute__ ((noreturn));
 any evExpr(any,any);
 any evList(any);
 long evNum(any,any);

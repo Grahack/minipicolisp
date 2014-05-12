@@ -4,7 +4,7 @@
 
 #include "pico.h"
 
-static void divErr(any ex) {err(ex,NULL,"Div/0");}
+static void divErr(any ex) {err1(ex,NULL,"Div/0");}
 
 /* Number of bytes */
 int numBytes(any x) {

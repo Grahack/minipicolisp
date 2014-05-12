@@ -419,7 +419,7 @@ any doName(any ex) {
       return x;
    }
    if (isNil(data(c1)) || data(c1) == isIntern(y, Intern))
-      err(ex, data(c1), "Can't rename");
+      err1(ex, data(c1), "Can't rename");
    Save(c1);
    x = EVAL(car(x));
    NeedSymb(ex,x);

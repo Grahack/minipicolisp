@@ -115,7 +115,7 @@ any apply(any ex, any foo, bool cf, int n, cell *p) {
             Env.cls = cls,  Env.key = key;
             return x;
          }
-         err(ex, o, "Bad object");
+         err1(ex, o, "Bad object");
       }
       if (isNil(val(foo)) || foo == val(foo))
          undefined(foo,ex);
