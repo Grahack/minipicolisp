@@ -38,7 +38,7 @@ any doAs(any x) {
 // (lit 'any) -> any
 any doLit(any x) {
    x = cadr(x);
-   if (isNum(x = EVAL(x)) || isNil(x) || x == T || isCell(x) && isNum(car(x)))
+   if (isNum(x = EVAL(x)) || isNil(x) || x == T || (isCell(x) && isNum(car(x))))
       return x;
    return cons(Quote, x);
 }
@@ -74,7 +74,7 @@ any doEval(any x) {
             if (p->cnt  &&  p->bnd[0].sym == At  &&  !--j)
                break;
          }
-      } while (p = p->link);
+      } while ((p = p->link));
       while (isCell(x)) {
          for (p = Env.bind, j = n; ; p = p->link) {
             if (p->i < 0)
