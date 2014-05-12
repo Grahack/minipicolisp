@@ -10,11 +10,7 @@ picolisp: $(bin)/picolisp
 
 .c.o:
 	echo $*.c:
-	gcc -c -O2 -pipe \
-	-falign-functions -fomit-frame-pointer -fno-strict-aliasing \
-	-W -Wimplicit -Wreturn-type -Wunused -Wformat \
-	-Wuninitialized -Wstrict-prototypes \
-	-D_GNU_SOURCE  $*.c
+	clang $*.c
 
 $(picoFiles:.c=.o): pico.h
 
