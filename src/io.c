@@ -1,4 +1,4 @@
-/* 10jul13abu
+/* 05oct14abu
  * (c) Software Lab. Alexander Burger
  */
 
@@ -298,40 +298,6 @@ static any anonymous(any s) {
    return NULL;
 }
 
-/* Relocate anonymous symbol */
-static any reloc(any key) {
-   any x, y;
-   int n;
-
-   if (!isCell(x = Reloc)) {
-      Reloc = cons(cons(key, y = consSym(Nil,0)), Nil);
-      return y;
-   }
-   for (;;) {
-      if ((n = num(key) - num(caar(x))) == 0)
-         return cdar(x);
-      if (!isCell(cdr(x))) {
-         key = cons(cons(key, y = consSym(Nil,0)), Nil);
-         cdr(x) = n<0? cons(key,Nil) : cons(Nil,key);
-         return y;
-      }
-      if (n < 0) {
-         if (!isCell(cadr(x))) {
-            cadr(x) = cons(cons(key, y = consSym(Nil,0)), Nil);
-            return y;
-         }
-         x = cadr(x);
-      }
-      else {
-         if (!isCell(cddr(x))) {
-            cddr(x) = cons(cons(key, y = consSym(Nil,0)), Nil);
-            return y;
-         }
-         x = cddr(x);
-      }
-   }
-}
-
 /* Read one expression */
 static any read0(bool top) {
    int i;
@@ -371,27 +337,6 @@ static any read0(bool top) {
       Env.get();
       Push(c1, read0(top));
       x = EVAL(data(c1));
-      drop(c1);
-      return x;
-   }
-   if (Chr == '\\') {
-      Env.get();
-      Push(c1, read0(top));
-      if (isNum(x = data(c1)))
-         x = reloc(x);
-      else if (isCell(x)) {
-         Transient[0] = Transient[1] = Nil;
-         if (isNum(x = car(y = x)))
-            x = car(y) = reloc(x);
-         if (isCell(y = cdr(y))) {
-            val(x) = car(y);
-            p = (any)&tail(x);
-            while (isCell(car(p)))
-               car(p) = caar(p);
-            while (isCell(y = cdr(y)))
-               car(p) = cons(car(p),car(y)),  p = car(p);
-         }
-      }
       drop(c1);
       return x;
    }
@@ -512,7 +457,7 @@ any doRead(any ex) {
    any x, y;
 
    if (!isCell(x = cdr(ex)))
-      x = read1(0),  Reloc = Nil;
+      x = read1(0);
    else {
       y = EVAL(car(x));
       NeedSym(ex,y);
@@ -1083,73 +1028,6 @@ any doPrintln(any x) {
       space(),  print(y = EVAL(car(x)));
    newline();
    return y;
-}
-
-/* Save one expression */
-static void save(any x) {
-   any y, nm;
-
-   if (isNum(x))
-      outNum(unBox(x));
-   else if (isSym(x)) {
-      if (x == isIntern(nm = name(x), Intern))
-         prIntern(nm);
-      else if (num(y = val(x)) & 1) {
-         if (nm == txt(0))
-            Env.put('\\'), outNum((word)x/sizeof(cell));
-         else
-            prTransient(nm);
-      }
-      else {
-         *(long*)&val(x) |= 1;
-         if (x == y && nm != txt(0))
-            prTransient(nm);
-         else {
-            outString("\\(");
-            if (nm == txt(0))
-               outNum((word)x/sizeof(cell));
-            else
-               prTransient(nm);
-            space(), save(y);
-            for (y = tail(x); isCell(y); y = car(y))
-               space(), save(cdr(y));
-            Env.put(')');
-         }
-      }
-   }
-   else {
-      y = x;
-      Env.put('(');
-      while (save(car(x)), !isNil(x = cdr(x))) {
-         if (x == y) {
-            outString(" .");
-            break;
-         }
-         if (!isCell(x)) {
-            outString(" . ");
-            save(x);
-            break;
-         }
-         space();
-      }
-      Env.put(')');
-   }
-}
-
-// (save 'any) -> any
-any doSave(any x) {
-   any p;
-   heap *h;
-
-   x = cdr(x),  save(x = EVAL(car(x))),  newline();
-   h = Heaps;
-   do {
-      p = h->cells + CELLS-1;
-      do
-         *(long*)&cdr(p) &= ~1;
-      while (--p >= h->cells);
-   } while (h = h->next);
-   return x;
 }
 
 // (flush) -> flg

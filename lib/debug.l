@@ -1,11 +1,11 @@
-# 31jul13abu
+# 24nov16abu
 # (c) Software Lab. Alexander Burger
 
 # Browsing
 (de more ("M" "Fun")
    (let *Dbg NIL
       (if (pair "M")
-         ((default "Fun" print) (pop '"M"))
+         ((default "Fun" print) (++ "M"))
          (println (type "M"))
          (setq
             "Fun" (list '(X) (list 'pp 'X (lit "M")))
@@ -14,7 +14,7 @@
          (flush)
          (T (atom "M") (prinl))
          (T (line) T)
-         ("Fun" (pop '"M")) ) ) )
+         ("Fun" (++ "M")) ) ) )
 
 (de what (S)
    (let *Dbg NIL
@@ -76,6 +76,11 @@
          (not "*Prg")
          (let *Dbg (up 2 *Dbg) (run "*Prg")) ) ) )
 
+(de has ("X")
+   (let *Dbg NIL
+      (filter
+         '(("S") (= "X" (val "S")))
+         (all) ) ) )
 
 (de can (X)
    (let *Dbg NIL
@@ -141,7 +146,7 @@
 
 (de dbg (Lst)
    (when (pair Lst)
-      (casq (pop 'Lst)
+      (casq (++ Lst)
          ((case casq state)
             (_dbg Lst)
             (for L (cdr Lst)
@@ -246,7 +251,7 @@
          (when (traced? "X")
             (let X (set "X" (cddr (cadr (getd "X"))))
                (and
-                  (== '@ (pop 'X))
+                  (== '@ (++ X))
                   (= 1 (length X))
                   (= 2 (length (car X)))
                   (== 'pass (caar X))

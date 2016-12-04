@@ -1,4 +1,4 @@
-/* 30aug13abu
+/* 24nov16abu
  * (c) Software Lab. Alexander Burger
  */
 
@@ -480,9 +480,9 @@ any doFunQ(any x) {
       return x;
    if (isSym(x))
       return Nil;
-   for (y = cdr(x); isCell(y); y = cdr(y)) {
-      if (y == x)
-         return Nil;
+   if (circ(y = cdr(x)))
+      return Nil;
+   while (isCell(y)) {
       if (isCell(car(y))) {
          if (isNum(caar(y))) {
             if (isCell(cdr(y)))
@@ -493,14 +493,19 @@ any doFunQ(any x) {
       }
       else if (!isNil(cdr(y)))
          return Nil;
+      y = cdr(y);
    }
    if (!isNil(y))
       return Nil;
    if (isNil(x = car(x)))
       return T;
-   for (y = x; isCell(y);)
-      if (isNum(car(y)) || isCell(car(y)) || isNil(car(y)) || car(y)==T || x==(y=cdr(y)))
+   if (circ(y = x))
+      return Nil;
+   while (isCell(y)) {
+      if (isNum(car(y)) || isCell(car(y)) || isNil(car(y)) || car(y) == T)
          return Nil;
+      y = cdr(y);
+   }
    return isNum(y) || y==T? Nil : x;
 }
 
@@ -575,7 +580,7 @@ any doZap(any ex) {
 
    x = cdr(ex),  x = EVAL(car(x));
    NeedSymb(ex,x);
-   if (x >= Nil  &&  x <= Bye)
+   if (x >= Nil && x <= Quote  ||  x > (any)Ram &&  x <= Bye)
       protError(ex,x);
    unintern(x, Intern);
    return x;
@@ -885,9 +890,9 @@ any doPush(any ex) {
    NeedVar(ex,data(c1));
    CheckVar(ex,data(c1));
    x = cdr(x);
-   val(data(c1)) = cons(y = EVAL(car(x)), val(data(c1)));
-   while (isCell(x = cdr(x)))
+   do
       val(data(c1)) = cons(y = EVAL(car(x)), val(data(c1)));
+   while (isCell(x = cdr(x)));
    drop(c1);
    return y;
 }
@@ -901,11 +906,27 @@ any doPush1(any ex) {
    NeedVar(ex,data(c1));
    CheckVar(ex,data(c1));
    x = cdr(x);
-   if (!member(y = EVAL(car(x)), val(data(c1))))
-      val(data(c1)) = cons(y, val(data(c1)));
-   while (isCell(x = cdr(x)))
+   do
       if (!member(y = EVAL(car(x)), val(data(c1))))
          val(data(c1)) = cons(y, val(data(c1)));
+   while (isCell(x = cdr(x)));
+   drop(c1);
+   return y;
+}
+
+// (push1q 'var 'any ..) -> any
+any doPush1q(any ex) {
+   any x, y;
+   cell c1;
+
+   x = cdr(ex),  Push(c1, EVAL(car(x)));
+   NeedVar(ex,data(c1));
+   CheckVar(ex,data(c1));
+   x = cdr(x);
+   do
+      if (!memq(y = EVAL(car(x)), val(data(c1))))
+         val(data(c1)) = cons(y, val(data(c1)));
+   while (isCell(x = cdr(x)));
    drop(c1);
    return y;
 }
@@ -915,6 +936,19 @@ any doPop(any ex) {
    any x, y;
 
    x = cdr(ex),  x = EVAL(car(x));
+   NeedVar(ex,x);
+   CheckVar(ex,x);
+   if (!isCell(y = val(x)))
+      return y;
+   val(x) = cdr(y);
+   return car(y);
+}
+
+// (++ var) -> any
+any doPopq(any ex) {
+   any x, y;
+
+   x = cadr(ex);
    NeedVar(ex,x);
    CheckVar(ex,x);
    if (!isCell(y = val(x)))
@@ -1230,12 +1264,14 @@ any get(any x, any key) {
    while (isCell(z = car(y))) {
       if (!isCell(cdr(z))) {
          if (key == cdr(z)) {
-            car(y) = car(z),  car(z) = tail(x),  tail(x) = z;
+            if (y < (any)Rom  ||  y >= (any)(Rom+ROMS))
+               car(y) = car(z),  car(z) = tail(x),  tail(x) = z;
             return T;
          }
       }
       else if (key == cddr(z)) {
-         car(y) = car(z),  car(z) = tail(x),  tail(x) = z;
+         if (y < (any)Rom  ||  y >= (any)(Rom+ROMS))
+            car(y) = car(z),  car(z) = tail(x),  tail(x) = z;
          return cadr(z);
       }
       y = z;

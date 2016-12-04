@@ -1,4 +1,4 @@
-# 11nov12abu
+# 24nov16abu
 # (c) Software Lab. Alexander Burger
 
 ### Math ###
@@ -30,7 +30,7 @@
                (push 'L (hex1 X)) )
             (pack S L) ) )
       ((setq X (filter '((C) (not (sp? C))) (chop X)))
-         (let (S (and (= '- (car X)) (pop 'X))  N 0)
+         (let (S (and (= '- (car X)) (++ X))  N 0)
             (for C X
                (setq C (- (char C) `(char "0")))
                (and (> C 9) (dec 'C 7))
@@ -66,7 +66,7 @@
                   (max
                      (recurse (cadr Idx) N)
                      (recurse (cddr Idx) N) ) ) ) )
-         (or (=0 C) (*/ D C)) ) ) )
+         (or (=0 (setq @@ C)) (*/ D C)) ) ) )
 
 ### Date ###
 (de dat$ (Dat C)

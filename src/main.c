@@ -1,4 +1,4 @@
-/* 10mar14abu
+/* 12jul15abu
  * (c) Software Lab. Alexander Burger
  */
 
@@ -13,10 +13,18 @@ stkEnv Env;
 catchFrame *CatchPtr;
 FILE *InFile, *OutFile;
 any TheKey, TheCls, Thrown;
-any Intern[2], Transient[2], Reloc;
+any Intern[2], Transient[2];
 any ApplyArgs, ApplyBody;
-any Nil, Meth, Quote, T, At, At2, At3, This;
-any Dbg, Scl, Class, Up, Err, Msg, Bye;
+
+/* ROM Data */
+any const __attribute__ ((__aligned__(2*WORD))) Rom[] = {
+   #include "rom.d"
+};
+
+/* RAM Symbols */
+any __attribute__ ((__aligned__(2*WORD))) Ram[] = {
+   #include "ram.d"
+};
 
 static bool Jam;
 static jmp_buf ErrRst;
@@ -72,13 +80,13 @@ any doHeap(any x) {
    if (isNil(EVAL(car(x)))) {
       heap *h = Heaps;
       do
-         ++n;
+         n += CELLS;
       while (h = h->next);
-      return box(n);
    }
-   for (x = Avail;  x;  x = car(x))
-      ++n;
-   return box(n / CELLS);
+   else
+      for (x = Avail;  x;  x = car(x))
+         ++n;
+   return box(n * sizeof(cell) / 1024);  // kB
 }
 
 // (env ['lst] | ['sym 'val] ..) -> lst
@@ -158,9 +166,11 @@ any doUp(any x) {
 
 /*** Primitives ***/
 any circ(any x) {
-   any y = x;
+   any y;
 
-   for (;;) {
+   if (!isCell(x)  ||  x >= (any)Rom  &&  x < (any)(Rom+ROMS))
+      return NULL;
+   for (y = x;;) {
       any z = cdr(y);
 
       *(word*)&cdr(y) |= 1;
@@ -168,6 +178,12 @@ any circ(any x) {
          do
             *(word*)&cdr(x) &= ~1;
          while (isCell(x = cdr(x)));
+         return NULL;
+      }
+      if (y >= (any)Rom  &&  y < (any)(Rom+ROMS)) {
+         do
+            *(word*)&cdr(x) &= ~1;
+         while (y != (x = cdr(x)));
          return NULL;
       }
       if (num(cdr(y)) & 1) {
@@ -217,7 +233,9 @@ bool equal(any x, any y) {
       }
       if (!isCell(cdr(y)))
          break;
-      *(word*)&car(x) |= 1,  x = cdr(x),  y = cdr(y);
+      if (x < (any)Rom  ||  x >= (any)(Rom+ROMS))
+         *(word*)&car(x) |= 1;
+      x = cdr(x),  y = cdr(y);
       if (num(car(x)) & 1) {
          for (;;) {
             if (a == x) {
@@ -248,7 +266,7 @@ bool equal(any x, any y) {
          return res;
       }
    }
-   while (a != x)
+   while (a != x  &&  (a < (any)Rom  ||  a >= (any)(Rom+ROMS)))
       *(word*)&car(a) &= ~1,  a = cdr(a);
    return res;
 }
@@ -309,7 +327,6 @@ void err(any ex, any x, char *fmt, ...) {
    outFrame f;
 
    Chr = 0;
-   Reloc = Nil;
    Env.brk = NO;
    f.fp = stderr;
    pushOutFiles(&f);
@@ -335,6 +352,8 @@ void err(any ex, any x, char *fmt, ...) {
    Env.make = Env.yoke = NULL;
    Env.parser = NULL;
    Trace = 0;
+   Env.put = putStdout;
+   Env.get = getStdin;
    longjmp(ErrRst, +1);
 }
 
@@ -547,12 +566,6 @@ any xSym(any x) {
    return i? y : Nil;
 }
 
-any boxSubr(fun f) {
-   if (num(f) & 3)
-      giveup("Unaligned Function");
-   return (any)(num(f) | 2);
-}
-
 // (args) -> flg
 any doArgs(any ex __attribute__((unused))) {
    return Env.next > 0? T : Nil;
@@ -597,7 +610,7 @@ any mkDat(int y, int m, int d) {
    int n;
    static char mon[13] = {31,31,28,31,30,31,30,31,31,30,31,30,31};
 
-   if (m<1 || m>12 || d<1 || d>mon[m] && (m!=2 || d!=29 || y%4 || !(y%100) && y%400))
+   if (y<0 || m<1 || m>12 || d<1 || d>mon[m] && (m!=2 || d!=29 || y%4 || !(y%100) && y%400))
       return Nil;
    n = (12*y + m - 3) / 12;
    return box((4404*y+367*m-1094)/12 - 2*n + n/4 - n/100 + n/400 + d);
@@ -617,7 +630,8 @@ any doDate(any ex) {
    if (isCell(z))
       return mkDat(xNum(ex, car(z)),  xNum(ex, cadr(z)),  xNum(ex, caddr(z)));
    if (!isCell(x = cdr(x))) {
-      n = xNum(ex,z);
+      if ((n = xNum(ex,z)) < 0)
+         return Nil;
       y = (100*n - 20) / 3652425;
       n += (y - y/4);
       y = (100*n - 20) / 36525;
@@ -696,12 +710,20 @@ any loadAll(any ex) {
 
 /*** Main ***/
 int main(int ac, char *av[]) {
+   int i;
    char *p;
 
    AV0 = *av++;
    AV = av;
    heapAlloc();
-   initSymbols();
+   Intern[0] = Intern[1] = Transient[0] = Transient[1] = Nil;
+   intern(Nil, Intern);
+   intern(T, Intern);
+   intern(Meth, Intern);
+   intern(Quote, Intern);  // Last protected symbol
+   for (i = 1; i < RAMS; i += 2)
+      if (Ram[i] != (any)(Ram + i))
+         intern((any)(Ram + i), Intern);
    if (ac >= 2 && strcmp(av[ac-2], "+") == 0)
       val(Dbg) = T,  av[ac-2] = NULL;
    if (av[0] && *av[0] != '-' && (p = strrchr(av[0], '/')) && !(p == av[0]+1 && *av[0] == '.')) {
@@ -709,13 +731,12 @@ int main(int ac, char *av[]) {
       memcpy(Home, av[0], p - av[0] + 1);
       Home[p - av[0] + 1] = '\0';
    }
-   Reloc = Nil;
    InFile = stdin,  Env.get = getStdin;
    OutFile = stdout,  Env.put = putStdout;
    ApplyArgs = cons(cons(consSym(Nil,0), Nil), Nil);
    ApplyBody = cons(Nil,Nil);
    if (!setjmp(ErrRst))
-      loadAll(NULL);
+      prog(val(Main)),  loadAll(NULL);
    while (!feof(stdin))
       load(NULL, ':', Nil);
    bye(0);

@@ -1,4 +1,4 @@
-# 19jul13abu
+# 24nov16abu
 # (c) Software Lab. Alexander Burger
 
 # *Rule
@@ -35,7 +35,7 @@
          (for ((N . L) (get S T) L)
             (prin N " (be ")
             (print S)
-            (for X (pop 'L)
+            (for X (++ L)
                (space)
                (print X) )
             (prinl ")")
@@ -52,8 +52,8 @@
       (while (and "CL" (pat? (car "CL")))
          (push '"Env"
             (cons
-               (cons 0 (pop '"CL"))
-               (cons 1 (eval (pop '"CL"))) ) ) )
+               (cons 0 (++ "CL"))
+               (cons 1 (eval (++ "CL"))) ) ) )
       (cons
          (cons
             (conc (list 1 (0) NIL "CL" NIL) "Env") ) ) ) )
@@ -90,7 +90,7 @@
    (let "L"
       (make
          (while (nor (pat? (car "CL")) (lst? (car "CL")))
-            (link (pop '"CL")) ) )
+            (link (++ "CL")) ) )
       (query (goal "CL") "L") ) )
 
 ### Basic Rules ###

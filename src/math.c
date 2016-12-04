@@ -1,4 +1,4 @@
-/* 19aug13abu
+/* 25feb15abu
  * (c) Software Lab. Alexander Burger
  */
 
@@ -385,11 +385,13 @@ any doBitQ(any ex) {
 
    x = cdr(ex),  y = EVAL(car(x));
    NeedNum(ex,y);
+   if (num(y) < 0)
+      y = box(-unBox(y));
    while (isCell(x = cdr(x))) {
       if (isNil(z = EVAL(car(x))))
          return Nil;
       NeedNum(ex,z);
-      if ((unBox(y) & unBox(z)) != unBox(y))
+      if ((unBox(y) & (num(z)<0? -unBox(z) : unBox(z))) != unBox(y))
          return Nil;
    }
    return y;
@@ -403,11 +405,13 @@ any doBitAnd(any ex) {
    if (isNil(y = EVAL(car(x))))
       return Nil;
    NeedNum(ex,y);
+   if (num(y) < 0)
+      y = box(-unBox(y));
    while (isCell(x = cdr(x))) {
       if (isNil(z = EVAL(car(x))))
          return Nil;
       NeedNum(ex,z);
-      y = box(unBox(y) & unBox(z));
+      y = box(unBox(y) & (num(z)<0? -unBox(z) : unBox(z)));
    }
    return y;
 }
@@ -420,11 +424,13 @@ any doBitOr(any ex) {
    if (isNil(y = EVAL(car(x))))
       return Nil;
    NeedNum(ex,y);
+   if (num(y) < 0)
+      y = box(-unBox(y));
    while (isCell(x = cdr(x))) {
       if (isNil(z = EVAL(car(x))))
          return Nil;
       NeedNum(ex,z);
-      y = box(unBox(y) | unBox(z));
+      y = box(unBox(y) | (num(z)<0? -unBox(z) : unBox(z)));
    }
    return y;
 }
@@ -437,11 +443,13 @@ any doBitXor(any ex) {
    if (isNil(y = EVAL(car(x))))
       return Nil;
    NeedNum(ex,y);
+   if (num(y) < 0)
+      y = box(-unBox(y));
    while (isCell(x = cdr(x))) {
       if (isNil(z = EVAL(car(x))))
          return Nil;
       NeedNum(ex,z);
-      y = box(unBox(y) ^ unBox(z));
+      y = box(unBox(y) ^ (num(z)<0? -unBox(z) : unBox(z)));
    }
    return y;
 }
@@ -485,7 +493,7 @@ any doSeed(any ex) {
 // (rand ['num1 'num2] | ['T]) -> num | flg
 any doRand(any ex) {
    any x;
-   long n;
+   long n, m;
 
    x = cdr(ex);
    Seed = Seed * 6364136223846793005LL + 1;
@@ -494,5 +502,7 @@ any doRand(any ex) {
    if (x == T)
       return hi(Seed) & 1 ? T : Nil;
    n = xNum(ex,x);
-   return box(n + hi(Seed) % (evNum(ex,cddr(ex)) + 1 - n));
+   if (m = evNum(ex,cddr(ex)) + 1 - n)
+      n += hi(Seed) % m;
+   return box(n);
 }

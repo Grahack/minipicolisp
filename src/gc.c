@@ -1,10 +1,27 @@
-/* 01may14abu
+/* 26oct14abu
  * (c) Software Lab. Alexander Burger
  */
 
 #include "pico.h"
 
+static void mark(any);
+
 /* Mark data */
+static void markTail(any x) {
+   while (isCell(x)) {
+      if (!(num(cdr(x)) & 1))
+         return;
+      *(long*)&cdr(x) &= ~1;
+      mark(cdr(x)),  x = car(x);
+   }
+   if (!isTxt(x))
+      do {
+         if (!(num(val(x)) & 1))
+            return;
+         *(long*)&val(x) &= ~1;
+      } while (!isNum(x = val(x)));
+}
+
 static void mark(any x) {
    while (isCell(x)) {
       if (!(num(cdr(x)) & 1))
@@ -14,19 +31,8 @@ static void mark(any x) {
    }
    if (!isNum(x)  &&  num(val(x)) & 1) {
       *(long*)&val(x) &= ~1;
-      mark(val(x)),  x = tail(x);
-      while (isCell(x)) {
-         if (!(num(cdr(x)) & 1))
-            return;
-         *(long*)&cdr(x) &= ~1;
-         mark(cdr(x)),  x = car(x);
-      }
-      if (!isTxt(x))
-         do {
-            if (!(num(val(x)) & 1))
-               return;
-            *(long*)&val(x) &= ~1;
-         } while (!isNum(x = val(x)));
+      mark(val(x));
+      markTail(tail(x));
    }
 }
 
@@ -44,11 +50,13 @@ static void gc(long c) {
       while (--p >= h->cells);
    } while (h = h->next);
    /* Mark */
-   mark(Nil+1);
+   for (i = 0;  i < RAMS;  i += 2) {
+      markTail(Ram[i]);
+      mark(Ram[i+1]);
+   }
    mark(Intern[0]),  mark(Intern[1]);
    mark(Transient[0]), mark(Transient[1]);
    mark(ApplyArgs),  mark(ApplyBody);
-   mark(Reloc);
    for (p = Env.stack; p; p = cdr(p))
       mark(car(p));
    for (p = (any)Env.bind;  p;  p = (any)((bindFrame*)p)->link)
@@ -99,7 +107,7 @@ static void gc(long c) {
 any doGc(any x) {
    x = cdr(x),  x = EVAL(car(x));
    val(At) = val(At2) = Nil;
-   gc(isNum(x)? CELLS*unBox(x) : CELLS);
+   gc(isNum(x)? unBox(x) * 1024 / sizeof(cell) : CELLS);  // kB
    return x;
 }
 

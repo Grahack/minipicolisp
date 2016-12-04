@@ -1,4 +1,4 @@
-/* 22jul13abu
+/* 13jan16abu
  * (c) Software Lab. Alexander Burger
  */
 
@@ -198,11 +198,13 @@ any doRot(any ex) {
 
    x = cdr(ex),  Push(c1, y = EVAL(car(x)));
    if (isCell(y)) {
-      n = isCell(x = cdr(x))? (int)evNum(ex,x) : 0;
-      x = car(y);
-      while (--n  &&  isCell(y = cdr(y))  &&  y != data(c1))
-         z = car(y),  car(y) = x,  x = z;
-      car(data(c1)) = x;
+      n = 0;
+      if (!isCell(x = cdr(x)) || (n = (int)evNum(ex,x))) {
+         x = car(y);
+         while (--n  &&  isCell(y = cdr(y))  &&  y != data(c1))
+            z = car(y),  car(y) = x,  x = z;
+         car(data(c1)) = x;
+      }
    }
    return Pop(c1);
 }
@@ -246,6 +248,44 @@ any doNeed(any ex) {
             ++n,  x = cdr(x);
       while (++n < 0)
          x = cdr(x) = cons(data(c2),Nil);
+   }
+   return Pop(c1);
+}
+
+// (range 'num1 'num2 ['num3]) -> lst
+any doRange(any ex) {
+   any x, y;
+   long a, z, n;
+   cell c1;
+
+   x = cdr(ex),  y = EVAL(car(x));  // Start value
+   NeedNum(ex,y);
+   a = unBox(y);
+   x = cdr(x),  y = EVAL(car(x));  // End value
+   NeedNum(ex,y);
+   z = unBox(y);
+   x = cdr(x),  n = 1;  // Increment
+   if (!isNil(y = EVAL(car(x)))) {
+      NeedNum(ex,y);
+      if ((n = unBox(y)) <= 0)
+         argError(ex,y);
+   }
+   Push(c1, x = cons(box(a), Nil));
+   if (z >= a) {
+      for (;;) {
+         a += n;
+         if (a > z)
+            break;
+         x = cdr(x) = cons(box(a), Nil);
+      }
+   }
+   else {
+      for (;;) {
+         a -= n;
+         if (a < z)
+            break;
+         x = cdr(x) = cons(box(a), Nil);
+      }
    }
    return Pop(c1);
 }
@@ -782,6 +822,12 @@ any doEq0(any x) {
    return (x = EVAL(car(x))) == Zero? x : Nil;
 }
 
+// (=1 'any) -> 1 | NIL
+any doEq1(any x) {
+   x = cdr(x);
+   return (x = EVAL(car(x))) == One? x : Nil;
+}
+
 // (=T 'any) -> flg
 any doEqT(any x) {
    x = cdr(x);
@@ -1066,11 +1112,13 @@ any doLength(any x) {
    }
    for (n = 0, y = x;;) {
       ++n;
-      *(word*)&car(y) |= 1;
+      if (y < (any)Rom  ||  y >= (any)(Rom+ROMS))
+         *(word*)&car(y) |= 1;
       if (!isCell(y = cdr(y))) {
-         do
-            *(word*)&car(x) &= ~1;
-         while (isCell(x = cdr(x)));
+         if (x < (any)Rom  ||  x >= (any)(Rom+ROMS))
+            do
+               *(word*)&car(x) &= ~1;
+            while (isCell(x = cdr(x)));
          return box(n);
       }
       if (num(car(y)) & 1) {
@@ -1092,11 +1140,13 @@ static int size(any x) {
       ++n;
       if (isCell(car(y)))
          n += size(car(y));
-      *(word*)&car(y) |= 1;
+      if (y < (any)Rom  ||  y >= (any)(Rom+ROMS))
+         *(word*)&car(y) |= 1;
       if (!isCell(y = cdr(y))) {
-         do
-            *(word*)&car(x) &= ~1;
-         while (isCell(x = cdr(x)));
+         if (x < (any)Rom  ||  x >= (any)(Rom+ROMS))
+            do
+               *(word*)&car(x) &= ~1;
+            while (isCell(x = cdr(x)));
          return n;
       }
       if (num(car(y)) & 1) {
@@ -1132,6 +1182,19 @@ any doAssoc(any x) {
    return Nil;
 }
 
+// (rassoc 'any 'lst) -> lst
+any doRassoc(any x) {
+   any y;
+   cell c1;
+
+   x = cdr(x),  Push(c1, EVAL(car(x)));
+   x = cdr(x),  y = EVAL(car(x));
+   for (x = Pop(c1);  isCell(y);  y = cdr(y))
+      if (isCell(car(y)) && equal(x,cdar(y)))
+         return car(y);
+   return Nil;
+}
+
 // (asoq 'any 'lst) -> lst
 any doAsoq(any x) {
    any y;
@@ -1145,42 +1208,28 @@ any doAsoq(any x) {
    return Nil;
 }
 
-static any Rank;
-
-any rank1(any lst, int n) {
-   int i;
-
-   if (isCell(car(lst)) && compare(caar(lst), Rank) > 0)
-      return NULL;
-   if (n == 1)
-      return car(lst);
-   i = n / 2;
-   return rank1(nCdr(i,lst), n-i) ?: rank1(lst, i);
-}
-
-any rank2(any lst, int n) {
-   int i;
-
-   if (isCell(car(lst)) && compare(Rank, caar(lst)) > 0)
-      return NULL;
-   if (n == 1)
-      return car(lst);
-   i = n / 2;
-   return rank2(nCdr(i,lst), n-i) ?: rank2(lst, i);
-}
-
 // (rank 'any 'lst ['flg]) -> lst
 any doRank(any x) {
-   any y;
+   any y, z;
    cell c1, c2;
 
    x = cdr(x),  Push(c1, EVAL(car(x)));
    x = cdr(x),  Push(c2, y = EVAL(car(x)));
-   x = cdr(x),  x = EVAL(car(x));
-   Rank = Pop(c1);
-   if (isCell(y))
-      return (isNil(x)? rank1(y, length(y)) : rank2(y, length(y))) ?: Nil;
-   return Nil;
+   z = Nil;
+   x = cdr(x);
+   if (isNil(EVAL(car(x))))
+      for (x = Pop(c1);  isCell(y);  y = cdr(y)) {
+         if (compare(caar(y), x) > 0)
+            break;
+         z = y;
+      }
+   else
+      for (x = Pop(c1);  isCell(y);  y = cdr(y)) {
+         if (compare(x, caar(y)) > 0)
+            break;
+         z = y;
+      }
+   return car(z);
 }
 
 /* Pattern matching */
@@ -1462,7 +1511,7 @@ any doProve(any x) {
    return isCell(data(e))? data(e) : isCell(data(env))? T : Nil;
 }
 
-// (-> any [num]) -> any
+// (-> any [cnt]) -> any
 any doArrow(any x) {
    int i;
    any y;
