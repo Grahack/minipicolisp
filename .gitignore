@@ -1,0 +1,4 @@
+bin/picolisp
+*.d
+*.o
+gen3m
