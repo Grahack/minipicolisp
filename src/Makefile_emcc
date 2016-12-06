@@ -1,0 +1,32 @@
+# 10dec16
+# (c) Software Lab. Alexander Burger
+# Then tweaked for emcc by Christophe Gragnic
+
+.SILENT:
+
+bin = ../bin
+picoFiles = main.c gc.c apply.c flow.c sym.c subr.c math.c io.c
+
+picolisp: $(bin)/picolisp.js
+
+%.bc : %.c
+	echo $*.c:
+	emcc -o $*.bc $*.c
+$(bin)/picolisp.js: $(picoFiles:.c=.bc)
+	mkdir -p $(bin)
+	echo "  " link picolisp:
+	emcc -o $(bin)/picolisp.js $(picoFiles:.c=.bc) -lc -lm
+
+$(picoFiles:.c=.bc): pico.h sym.d rom.d ram.d
+
+sym.d rom.d ram.d: gen3m init.s lib.s pilog.s
+	./gen3m 0 init.s lib.s pilog.s
+
+gen3m: gen3m.c
+	gcc -o gen3m gen3m.c
+
+# Clean up
+clean:
+	rm -f ../bin/picolisp.js gen3m *.d *.bc
+
+# vi:noet:ts=4:sw=4
