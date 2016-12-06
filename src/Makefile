@@ -30,7 +30,7 @@ sym.d rom.d ram.d: gen3m init.s lib.s pilog.s
 	./gen3m 0 init.s lib.s pilog.s
 
 gen3m: gen3m.c
-	$(CC) -o gen3m gen3m.c
+	gcc -o gen3m gen3m.c
 
 # Clean up
 clean:
