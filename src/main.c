@@ -438,7 +438,7 @@ any evExpr(any expr, any x) {
    struct {  // bindFrame
       struct bindFrame *link;
       int i, cnt;
-      struct {any sym; any val;} bnd[length(y)+2];
+      struct {any sym; any val;} bnd[99+2];
    } f;
 
    f.link = Env.bind,  Env.bind = (bindFrame*)&f;
