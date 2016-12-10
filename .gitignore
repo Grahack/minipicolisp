@@ -1,4 +1,5 @@
 bin/picolisp
 *.d
 *.o
+*.bc
 gen3m
