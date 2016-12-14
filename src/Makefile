@@ -34,6 +34,6 @@ gen3m: gen3m.c
 
 # Clean up
 clean:
-	rm -f ../bin/picolisp gen3m *.d *.o
+	rm -f ../bin/picolisp gen3m *.d *.bc
 
 # vi:noet:ts=4:sw=4
