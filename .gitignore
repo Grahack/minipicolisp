@@ -1,5 +1,5 @@
-bin/picolisp
-*.d
-*.o
-*.bc
-gen3m
+/bin/picolisp
+/src/*.d
+/src/*.o
+/src/*.bc
+/src/gen3m
