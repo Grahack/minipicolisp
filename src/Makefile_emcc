@@ -9,6 +9,10 @@ picoFiles = main.c gc.c apply.c flow.c sym.c subr.c math.c io.c
 
 picolisp: $(bin)/picolisp.js
 
+html: $(picoFiles:.c=.bc)
+	mkdir -p $(bin)
+	emcc -o $(bin)/picolisp.html $(picoFiles:.c=.bc) -lc -lm
+
 %.bc : %.c
 	echo $*.c:
 	emcc -o $*.bc $*.c
