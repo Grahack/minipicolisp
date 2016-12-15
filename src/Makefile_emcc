@@ -14,7 +14,6 @@ picolisp: $(bin)/picolisp.js
 	emcc -o $*.bc $*.c
 $(bin)/picolisp.js: $(picoFiles:.c=.bc)
 	mkdir -p $(bin)
-	echo "  " link picolisp:
 	emcc -o $(bin)/picolisp.js $(picoFiles:.c=.bc) -lc -lm
 
 $(picoFiles:.c=.bc): pico.h sym.d rom.d ram.d
